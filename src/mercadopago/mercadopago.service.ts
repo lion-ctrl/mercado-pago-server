@@ -45,12 +45,18 @@ export class MercadopagoService {
     if (status.status !== 'approved') return;
 
     try {
-      let query = 'SELECT id FROM balance WHERE user_id = ? AND payment_id = ?';
+      let query = 'SELECT id FROM user WHERE id = ?';
+      const user = await this.dbService.select<any[]>({
+        query,
+        queryValues: [status.user_id],
+      });
+      if (!user.length) return;
+
+      query = 'SELECT id FROM balance WHERE payment_id = ?';
       const balance = await this.dbService.select<any[]>({
         query,
-        queryValues: [status.user_id, status.payment_id],
+        queryValues: [status.payment_id],
       });
-
       if (balance.length) return;
 
       const payment = await mercadopago.payment.get(status.payment_id);
